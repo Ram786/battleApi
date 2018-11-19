@@ -21,7 +21,7 @@ router.get("/", checkAuth, (req, res, next) => {
         battles: battles,
         request: {
           type: "GET",
-          url: "http://localhost:3000/battles/"
+          url: "http://localhost:5000/battles/"
         }
       });
     })
