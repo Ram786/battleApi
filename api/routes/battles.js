@@ -6,6 +6,29 @@ const checkAuth = require('../middleware/check-auth');
 
 const Battle = require("../models/battle");
 
+
+// function to return most mostFrequent
+function mostFrequent(array) {
+  let valueToStore = array;
+  let mostFrequentValue = '';
+  let counts = {};
+  let compare = 0;
+  for (let i = 0, len = array.length; i < len; i++) {
+    let word = array[i];
+
+    if (counts[word] === undefined) {
+      counts[word] = 1;
+    } else {
+      counts[word] = counts[word] + 1;
+    }
+    if (counts[word] > compare) {
+      compare = counts[word];
+      mostFrequentValue = valueToStore[i];
+    }
+  }
+  return mostFrequentValue;
+}
+
 // Handle incoming GET requests to /battles
 
 // API to get all battles
@@ -94,57 +117,40 @@ router.get("/stats", checkAuth, (req, res, next) => {
           message: "Battle not found"
         });
       }
-      const battleList = JSON.parse(JSON.stringify(battles));
-      const resObj = {};
+      let battleList = JSON.parse(JSON.stringify(battles));
+      let resObj = {};
       resObj.most_active = {};
 
-      const counts = {};
-      let compare = 0;
-      let mostFrequentValue;
+      let attacker_king = _.map(battleList, 'attacker_king');
+      let defender_king = _.map(battleList, 'defender_king');
+      let mostactive_name = _.map(battleList, 'name');
+      console.log("mostactive_namemostactive_name", mostactive_name);
 
-      function mostFrequent(array) {
-        const valueToStore = array;
-        for (let i = 0, len = array.length; i < len; i++) {
-          const word = array[i];
-
-          if (counts[word] === undefined) {
-            counts[word] = 1;
-          } else {
-            counts[word] = counts[word] + 1;
-          }
-          if (counts[word] > compare) {
-            compare = counts[word];
-            mostFrequentValue = valueToStore[i];
-          }
-        }
-        return mostFrequentValue;
-      }
-
-      const attacker_king = _.map(battleList, 'attacker_king');
-      const defender_king = _.map(battleList, 'defender_king');
+      let mostactive_region = _.map(battleList, 'region');
+      console.log("mostactive_regionmostactive_region", mostactive_region);
       resObj.most_active.attacker_king = mostFrequent(attacker_king);
       resObj.most_active.defender_king = mostFrequent(defender_king);
-      resObj.region = '';
-      resObj.name = '';
+      resObj.most_active.region = mostFrequent(mostactive_region);;
+      resObj.most_active.name = mostFrequent(mostactive_name);;
 
       resObj.attacker_outcome = {};
 
-      const totalWin = _.filter(battleList, {
+      let totalWin = _.filter(battleList, {
         attacker_king: resObj.most_active.attacker_king,
         attacker_outcome: 'win',
       });
 
-      const totalLoss = _.filter(battleList, {
+      let totalLoss = _.filter(battleList, {
         attacker_king: resObj.most_active.attacker_king,
         attacker_outcome: 'loss',
       });
 
-      const defender_king_array = _.filter(battleList, {
+      let defender_king_array = _.filter(battleList, {
         defender_king: resObj.most_active.defender_king,
       });
 
-      const defender_size_array = _.map(defender_king_array, 'defender_size');
-      const battle_type_list = _.map(battleList, 'battle_type');
+      let defender_size_array = _.map(defender_king_array, 'defender_size');
+      let battle_type_list = _.map(battleList, 'battle_type');
 
       resObj.attacker_outcome.win = totalWin.length; // total win
       resObj.attacker_outcome.loss = totalLoss.length; // total loss
@@ -155,10 +161,12 @@ router.get("/stats", checkAuth, (req, res, next) => {
       resObj.defender_size.min = _.min(defender_size_array);
       resObj.defender_size.max = _.max(defender_size_array);
 
-      const responseToDisplay = JSON.parse(JSON.stringify(resObj));
+      let responseToDisplay = JSON.parse(JSON.stringify(resObj));
 
       res.status(200).json({
-        "Total number of battle occurred": responseToDisplay,
+        sucess: true,
+        message: "Successfully returns stats",
+        data: responseToDisplay,
       });
     })
     .catch(err => {
