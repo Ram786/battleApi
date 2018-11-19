@@ -7,7 +7,6 @@ const jwt = require("jsonwebtoken");
 const User = require("../models/user");
 
 router.post("/signup", (req, res, next) => {
-  console.log("signupsignupsignupsignup",req.body.email);
   User.find({
       email: req.body.email
     })
@@ -15,7 +14,9 @@ router.post("/signup", (req, res, next) => {
     .then(user => {
       if (user.length >= 1) {
         return res.status(409).json({
-          message: "Mail exists"
+          success: false,
+          message: "Mail exists",
+          data: {}
         });
       } else {
         bcrypt.hash(req.body.password, 10, (err, hash) => {
@@ -34,11 +35,12 @@ router.post("/signup", (req, res, next) => {
               .then(result => {
                 console.log(result);
                 res.status(201).json({
-                  message: "User created"
+                  success: true,
+                  message: "Successful user created",
+                  data: result
                 });
               })
               .catch(err => {
-                console.log("errerrerrerrerrerrerr",err);
                 res.status(500).json({
                   error: err
                 });
@@ -57,13 +59,17 @@ router.post("/login", (req, res, next) => {
     .then(user => {
       if (user.length < 1) {
         return res.status(401).json({
-          message: "Auth failed"
+          success: false,
+          message: "Auth failed",
+          data: {}
         });
       }
       bcrypt.compare(req.body.password, user[0].password, (err, result) => {
         if (err) {
           return res.status(401).json({
-            message: "Auth failed"
+            success: false,
+            message: "Auth failed",
+            data: {}
           });
         }
         if (result) {
@@ -75,13 +81,18 @@ router.post("/login", (req, res, next) => {
               expiresIn: "1h"
             }
           );
+          var resObj = {};
+          resObj.token = token;
           return res.status(200).json({
+            success: true,
             message: "Auth successful",
-            token: token
+            data: resObj
           });
         }
         res.status(401).json({
-          message: "Auth failed"
+          success: false,
+          message: "Auth failed",
+          data: {}
         });
       });
     })
@@ -100,7 +111,9 @@ router.delete("/:userId", (req, res, next) => {
     .exec()
     .then(result => {
       res.status(200).json({
-        message: "User deleted"
+        success: true,
+        message: "User deleted",
+        data: {}
       });
     })
     .catch(err => {
