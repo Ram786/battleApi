@@ -1,0 +1,7 @@
+node_modules
+nodemon.json
+uploads
+/node_modules
+npm-debug.log
+.DS_Store
+/*.env
