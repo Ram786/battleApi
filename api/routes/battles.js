@@ -8,6 +8,7 @@ const Battle = require("../models/battle");
 
 // Handle incoming GET requests to /battles
 
+// API to get all battles
 router.get("/", checkAuth, (req, res, next) => {
 
   Battle.find({}, {})
@@ -18,11 +19,9 @@ router.get("/", checkAuth, (req, res, next) => {
         });
       }
       res.status(200).json({
-        battles: battles,
-        request: {
-          type: "GET",
-          url: "http://localhost:5000/battles/"
-        }
+        sucess: true,
+        message: "Successfully returns battles",
+        data: battles
       });
     })
     .catch(err => {
@@ -32,20 +31,23 @@ router.get("/", checkAuth, (req, res, next) => {
     });
 });
 
+// API to get returns list(array) of all the places where battle has taken place.
 router.get("/list", checkAuth, (req, res, next) => {
 
   Battle.find({}, {
       _id: 0,
       location: 1,
     })
-    .then(battles => {
-      if (!battles) {
+    .then(locations => {
+      if (!locations) {
         return res.status(404).json({
           message: "Battle not found"
         });
       }
       res.status(200).json({
-        locations: battles,
+        sucess: true,
+        message: "Successfully returns list of locations where battles have taken place",
+        data: locations
       });
     })
     .catch(err => {
@@ -55,9 +57,10 @@ router.get("/list", checkAuth, (req, res, next) => {
     });
 });
 
+// API returns total number of battle occurred.
 router.get("/count", checkAuth, (req, res, next) => {
 
-  Battle.find({}, {})
+  Battle.find()
     .then(battles => {
       if (!battles) {
         return res.status(404).json({
@@ -67,7 +70,9 @@ router.get("/count", checkAuth, (req, res, next) => {
       const responseToDisplay = JSON.parse(JSON.stringify(battles));
       const responseToDisplayLength = responseToDisplay.length;
       res.status(200).json({
-        "Total number of battle occurred": responseToDisplayLength,
+        sucess: true,
+        message: "Successfully return total number of battle occurred",
+        data: responseToDisplayLength
       });
     })
     .catch(err => {
@@ -77,16 +82,18 @@ router.get("/count", checkAuth, (req, res, next) => {
     });
 });
 
+
+// API to get stats
 router.get("/stats", checkAuth, (req, res, next) => {
 
-  Battle.find({}, {})
+  Battle.find()
     .then(battles => {
+
       if (!battles) {
         return res.status(404).json({
           message: "Battle not found"
         });
       }
-
       const battleList = JSON.parse(JSON.stringify(battles));
       const resObj = {};
       resObj.most_active = {};
@@ -161,14 +168,15 @@ router.get("/stats", checkAuth, (req, res, next) => {
     });
 });
 
-router.get("/search", (req, res, next) => {
+// API for search
+router.get("/search", checkAuth, (req, res, next) => {
 
   var getQueryObject = function() {
-    var _get = {};
-    var re = /[?&]([^=&]+)(=?)([^&]*)/g;
+    let reqParameters = {};
+    let re = /[?&]([^=&]+)(=?)([^&]*)/g;
     while (m = re.exec(req.originalUrl))
-      _get[decodeURIComponent(m[1])] = (m[2] == '=' ? decodeURIComponent(m[3]) : true);
-    return _get;
+      reqParameters[decodeURIComponent(m[1])] = (m[2] == '=' ? decodeURIComponent(m[3]) : true);
+    return reqParameters;
   }
 
   var QueryString = getQueryObject();
@@ -194,14 +202,16 @@ router.get("/search", (req, res, next) => {
   }
 
   Battle.find(whereFilter, {})
-    .then(battles => {
-      if (!battles) {
+    .then(searchBattles => {
+      if (!searchBattles) {
         return res.status(404).json({
           message: "Battle not found"
         });
       }
       res.status(200).json({
-        locations: battles,
+        sucess: true,
+        message: "Successfully return battles search result",
+        data: searchBattles
       });
     })
     .catch(err => {
@@ -210,6 +220,5 @@ router.get("/search", (req, res, next) => {
       });
     });
 });
-
 
 module.exports = router;
